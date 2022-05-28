@@ -1,44 +1,41 @@
 const { expect } = require('chai');
+const { artifacts } = require('hardhat');
 
-let miEToken;
-let accounts;
+const MiEToken = artifacts.require('MiEToken');
 
 const initialSupply = 1000;
 
-beforeEach(async () => {
-    accounts = await web3.eth.getAccounts();
+contract("MiEToken", function (accounts) {
+    let token;
     
-    miEToken = await new web3.eth.Contract(abi)
-        .deploy({ data: evm.bytecode.object, arguments: [initialSupply] })
-        .send({ from: accounts[0], gas: '1000000' });
-});
-
-describe('MiEToken', () => {
-    it("deploys a token", () => {
-        assert.ok(miEToken.options.address);
+    beforeEach(async () => {
+        token = await MiEToken.new(initialSupply);
     });
-
-    it("it has the correct initial supply", async () => {
-        const supply = await miEToken.methods.totalSupply().call();
-        assert.equal(supply, initialSupply);
+    
+    it('should have initial supply', async () => {
+        const supply = await token.totalSupply();
+        expect(supply.toNumber()).to.equal(initialSupply);
     });
-
-    it("it has the correct balance of the owner", async () => {
-        const balance = await miEToken.methods.balanceOf(accounts[0]).call();
-        assert.equal(balance, initialSupply);
+    
+    it('should have initial balance', async () => {
+        const balance = await token.balanceOf(accounts[0]);
+        expect(balance.toNumber()).to.equal(initialSupply);
     });
-
-    it("it transfers the correct amount of tokens", async () => {
+    
+    it('should transfer token', async () => {
         const amount = 10;
-        const sender = accounts[0];
-        const receiver = accounts[1];
-
-        await miEToken.methods.transfer(receiver, amount).send({ from: sender });
-
-        const senderBalance = await miEToken.methods.balanceOf(sender).call();
-        const receiverBalance = await miEToken.methods.balanceOf(receiver).call();
-
-        assert.equal(senderBalance, initialSupply - amount);
-        assert.equal(receiverBalance, amount);
+        const from = accounts[0];
+        const to = accounts[1];
+    
+        const balanceFrom = await token.balanceOf(from);
+        const balanceTo = await token.balanceOf(to);
+    
+        await token.transfer(to, amount);
+    
+        const newBalanceFrom = await token.balanceOf(from);
+        const newBalanceTo = await token.balanceOf(to);
+    
+        expect(newBalanceFrom.toNumber()).to.equal(balanceFrom.toNumber() - amount);
+        expect(newBalanceTo.toNumber()).to.equal(balanceTo.toNumber() + amount);
     });
 });
