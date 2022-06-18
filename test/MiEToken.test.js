@@ -37,5 +37,7 @@ contract("MiEToken", function (accounts) {
     
         expect(newBalanceFrom.toNumber()).to.equal(balanceFrom.toNumber() - amount);
         expect(newBalanceTo.toNumber()).to.equal(balanceTo.toNumber() + amount);
+        expect(newBalanceFrom.toNumber()).lessThanOrEqual(balanceFrom.toNumber());
+        
     });
 });
